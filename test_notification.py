@@ -5,15 +5,15 @@
 #   1. Fill in config.py: WIFI_SSID, WIFI_PASSWORD, NTFY_TOPIC
 #   2. Install the ntfy app on your phone and subscribe to your NTFY_TOPIC
 #   3. Upload this file and config.py to the ESP32, then run this file in Thonny
-#   4. Press SPACE in the Thonny Shell to fire a test notification
-#   5. Press Q to quit
+#   4. Notifications fire automatically every 3 seconds
+#   5. Stop the script in Thonny (Stop/Restart button) to end
 
-import sys
-import select
 import time
 import network
 import urequests
 import config
+
+SEND_INTERVAL_MS = 3000   # ms between notifications
 
 # ---------------------------------------------------------------------------
 # WiFi
@@ -52,8 +52,7 @@ def send_test_notification():
     headers = {
         "Title":    "Focus Device Test",
         "Priority": "high",
-        "Tags":     "test_tube"
-    }
+        "Tags":     "test_tube"}
     message = "Testing! Your Focus Device notifications are working."
 
     print("Sending... ", end="")
@@ -69,45 +68,19 @@ def send_test_notification():
         print(f"FAILED: {e}")
 
 # ---------------------------------------------------------------------------
-# Keyboard helper — non-blocking single character read from Thonny shell
-# ---------------------------------------------------------------------------
-
-_poll = select.poll()
-_poll.register(sys.stdin, select.POLLIN)
-
-def read_key():
-    """Return the next character from stdin, or None if nothing is waiting."""
-    if _poll.poll(0):            # 0 ms timeout = non-blocking
-        return sys.stdin.read(1)
-    return None
-
-# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
 print("=" * 42)
 print("  ntfy.sh Notification Test")
 print(f"  Topic: {config.NTFY_TOPIC}")
+print(f"  Sending every {SEND_INTERVAL_MS // 1000}s — stop with Thonny Stop button")
 print("=" * 42)
 
 if connect_wifi():
-    print()
-    print("Ready.")
-    print("  SPACE  →  send test notification")
-    print("  Q      →  quit")
-    print()
-
     count = 0
     while True:
-        key = read_key()
-
-        if key == ' ':
-            count += 1
-            print(f"[{count}] ", end="")
-            send_test_notification()
-
-        elif key in ('q', 'Q'):
-            print("Exiting.")
-            break
-
-        time.sleep_ms(50)   # keep the loop light on CPU
+        count += 1
+        print(f"[{count}] ", end="")
+        send_test_notification()
+        time.sleep_ms(SEND_INTERVAL_MS)
