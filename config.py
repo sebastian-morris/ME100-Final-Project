@@ -31,8 +31,10 @@ POWER_ON_HOLD_MS  = 2000   # hold 2s to turn device ON
 POWER_OFF_HOLD_MS = 5000   # hold 5s to turn device OFF (phone must be on pad)
 
 # --- Timing (seconds) ---
-GRACE_PERIOD        = 30   # silence window after phone removed before alarm
-ESCALATION_INTERVAL = 30   # seconds between volume escalations
+GRACE_PERIOD          = 30   # silence window after phone removed
+WARN_DURATION         = 5    # seconds between quiet-beep warning and full alarm
+ESCALATION_INTERVAL   = 30   # seconds between volume escalations once alarm is running
+ALARM_NOTIFY_INTERVAL = 30   # seconds between repeated spam notifications in ALARM state
 
 # --- Alarm volume levels (0.0 – 1.0 maps to DAC amplitude) ---
 VOLUME_LOW  = 0.30

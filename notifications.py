@@ -57,6 +57,44 @@ def send_first_warning():
     )
 
 
+def send_gentle_reminder():
+    """
+    Called once at the 30s mark — kind nudge before the alarm starts.
+    Bypasses cooldown: this is a precisely timed single event, not user-triggered.
+    """
+    url     = "https://ntfy.sh/" + config.NTFY_TOPIC
+    headers = {"Title": "Focus Device", "Priority": "default", "Tags": "bell"}
+    try:
+        response = urequests.post(
+            url,
+            data="Heads up — alarm starts in 5 seconds. Put your phone down!",
+            headers=headers
+        )
+        response.close()
+        print("[notifications] gentle reminder sent")
+    except Exception as e:
+        print("[notifications] FAILED:", e)
+
+
+def send_alarm_spam():
+    """
+    Called repeatedly during ALARM state on ALARM_NOTIFY_INTERVAL cadence.
+    Bypasses cooldown — the interval is managed by main.py, not the cooldown guard.
+    """
+    url     = "https://ntfy.sh/" + config.NTFY_TOPIC
+    headers = {"Title": "FOCUS DEVICE", "Priority": "urgent", "Tags": "rotating_light"}
+    try:
+        response = urequests.post(
+            url,
+            data="PUT YOUR PHONE DOWN!",
+            headers=headers
+        )
+        response.close()
+        print("[notifications] alarm spam sent")
+    except Exception as e:
+        print("[notifications] FAILED:", e)
+
+
 def send_escalation_warning():
     """Optional second notification sent during ALARM state."""
     send_notification(
@@ -77,16 +115,20 @@ def send_btn_blocked():
     )
 
 
-def send_session_end(duration_s, pickups):
+def send_session_end(duration_s, pickups, phone_off_s=0):
     """
     Called in STOPPING state — session complete.
-    duration_s: total session length in seconds
-    pickups: number of times phone was removed (GRACE entries)
+    duration_s:   total session length in seconds
+    pickups:      number of times phone was removed (GRACE entries)
+    phone_off_s:  total seconds the phone was off the device
     """
     global _last_notify_time
     _last_notify_time = 0   # bypass cooldown — always send this one
-    duration_min = duration_s // 60
-    message = "Great work! Session: {} min | Phone pickups: {}".format(duration_min, pickups)
+    duration_min  = duration_s // 60
+    phone_off_min = phone_off_s // 60
+    phone_off_sec = phone_off_s % 60
+    message = "Session: {} min | Pickups: {} | Phone time: {}m {}s".format(
+        duration_min, pickups, phone_off_min, phone_off_sec)
     send_notification(
         message=message,
         title="Session Complete",

@@ -30,6 +30,11 @@ def _play_square_tone(freq_hz, duration_ms, volume):
     _dac.write(128)  # return to midpoint between tones
 
 
+def play_quiet_beep():
+    """Single soft tone at the 30s warning mark — one short pulse at low volume."""
+    _play_square_tone(880, 300, 0.15)
+
+
 def play_beep(volume):
     """
     Play one alarm two-tone cycle: TONE_HIGH then TONE_LOW.
